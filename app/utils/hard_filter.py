@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Dict, Any
 from bson import ObjectId
-
+import re
 from app.models.vendor_model import Vendor
 from app.models.venue_model import VenuePackage
 
@@ -38,7 +38,11 @@ async def hard_filter_vendors(structured_query: Dict[str, Any]) -> List[Dict[str
 
         min_experience = structured_query.get("min_experience")
         working_since = structured_query.get("working_since")
-
+        city = structured_query.get("city")
+        state = structured_query.get("state")
+        pincode = structured_query.get("pincode")
+        entity_name = structured_query.get("entity_name")
+        
         # FORCE TYPE CAST (CRITICAL FIX)
         
         if min_experience is not None:
@@ -49,7 +53,19 @@ async def hard_filter_vendors(structured_query: Dict[str, Any]) -> List[Dict[str
         if working_since is not None:
             working_since = int(working_since)  
             filters["workingSince__lte"] = working_since
-    
+
+        if entity_name:
+            filters["vendorName__icontains"] = entity_name
+         
+        if pincode:
+            filters["pincode"] = str(pincode)
+
+
+        if working_since is None and min_experience is None and entity_name is None and pincode is None :  
+            if state:
+                filters["state__iexact"] = state
+            elif city:
+                filters["city__iexact"] = city  
 
 
         queryset = (
@@ -67,7 +83,7 @@ async def hard_filter_vendors(structured_query: Dict[str, Any]) -> List[Dict[str
                 "lastActive",
                 "createdAt",
             )
-            .order_by("-lastActive")
+            # .order_by("-lastActive")
             .limit(200)
         )
 
@@ -113,7 +129,29 @@ async def hard_filter_venues(structured_query: Dict[str, Any]) -> List[Dict[str,
         if budget_max is not  None:
             filters["startingPrice__lte"] = budget_max
 
+
+        city = structured_query.get("city")
+        state = structured_query.get("state")
+        pincode = structured_query.get("pincode")
+        entity_name = structured_query.get("entity_name")
+    
+        if entity_name:
+            filters["title__icontains"] = entity_name
+
+
+        #  ########     FOR FUTURE ENCHANCEMENT
+        # if pincode:
+        #     filters["pincode"] = str(pincode)
+
+
+        # if budget_max is None and entity_name is None and pincode is None :  
+        #     if state:
+        #         filters["state__iexact"] = state
+        #     elif city:
+        #         filters["city__iexact"] = city  
+
         # Candidate Pool Query (Optimized Projection)
+
         queryset = (
             VenuePackage.objects(**filters)
             .only(
@@ -127,7 +165,7 @@ async def hard_filter_venues(structured_query: Dict[str, Any]) -> List[Dict[str,
                 "isPremium",
                 "inquiryCount",
             )
-            .order_by("-createdAt")
+            # .order_by("-createdAt")
             .limit(200)
         )
 

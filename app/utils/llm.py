@@ -35,7 +35,13 @@ YOUR TASK:
 GEO EXTRACTION PRIORITY:
 3. Extract explicit geographic entities from the query text
 
-
+CRITICAL AUTOCORRECTION RULES:
+- Correct misspelled entity names (e.g., "Biteh" → "Bite")
+- Correct city/state spelling mistakes 
+- DO NOT hallucinate new names
+- Only correct if the intent is clear
+- Preserve original meaning strictly
+- If unsure, keep original value (do NOT guess)
 IMPORTANT EXTRACTION RULES:
 - If a known city name appears → fill "city"
 - If a known state name appears → fill "state"
